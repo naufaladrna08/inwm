@@ -35,8 +35,40 @@ WindowManager::~WindowManager() {
 }
 
 void WindowManager::Run() {
+  /* Initializastion */
+  wm_detected_ = false;
   
+  XSetErrorHandler(&WindowManager::OnWMDetected);
+  XSelectInput(_dpy, _root, SubstructureRedirectMask | SubstructureNotifyMask);
 
+  if (wm_detected_) {
+    printf("Detected another window manager %s", XDisplayString(_dpy));
+    return;
+  }
+
+  XSetErrorHandler(&WindowManager::OnXError);
+  
+  XEvent e;
+  XNextEvemt(_dpy, &e);
+
+  switch (e.type) {
+    switch (e.type) {
+      case CreateNotify:
+        OnCreateNotify(e.xcreatewindow);
+        break;
+      case DestroyNotify:
+        OnDestroyNotify(e.xdestroywindow);
+        break;
+      case ReparentNotify:
+        OnReparentNotify(e.xreparent);
+        break;
+      ...
+      // etc. etc.
+      ...
+      default:
+        printf("Ignored event");
+    }
+  }
 }
 
 int WindowManager::OnWMDetected(Display* dpy, XErrorEvent* e) {
