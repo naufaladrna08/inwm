@@ -63,18 +63,17 @@ void WindowManager::Run() {
     case ReparentNotify:
       OnReparentNotify(e.xreparent);
       break;
-      //...
-      // etc. etc.
-      //...
+    case ConfigureRequest:
+      OnConfigureRequest(e.xconfigurerequest);
     default:
       printf("Ignored event");
   }
 }
 
 int WindowManager::OnWMDetected(Display* dpy, XErrorEvent* e) {
-  // if (static_cast<int>(e->error_code) == BadAccess) {
-  //   wm_detected_ = true;
-  // }
+  if (static_cast<int>(e->error_code) == BadAccess) {
+    wm_detected_ = true;
+  }
 
   return 0;
 }
@@ -88,3 +87,17 @@ int WindowManager::OnXError(Display* dpy, XErrorEvent* e) {
 void WindowManager::OnCreateNotify(const XCreateWindowEvent& e) {}
 void WindowManager::OnDestroyNotify(const XDestroyWindowEvent& e) {}
 void WindowManager::OnReparentNotify(const XReparentEvent& e) {}
+
+void WindowManager::OnConfigureRequest(const XConfigureRequestEvent& e) {
+  XWindowChanges changes;
+  changes.x = e.x;
+  changes.y = e.y;
+  changes.width = e.width;
+  changes.height = e.height;
+  changes.border_width = e.border_width;
+  changes.sibling = e.above;
+  changes.stack_mode = e.detail;
+
+  XConfigureWindow(_dpy, e.window, e.value_mask, &changes);
+  printf("Resize window %d, %d\n", e.width, e.height);
+}

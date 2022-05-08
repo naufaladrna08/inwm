@@ -45,6 +45,7 @@ class WindowManager {
     void OnCreateNotify(const XCreateWindowEvent& e);
     void OnDestroyNotify(const XDestroyWindowEvent& e);
     void OnReparentNotify(const XReparentEvent& e);
+    void OnConfigureRequest(const XConfigureRequestEvent& e);
 };
 
 #endif
