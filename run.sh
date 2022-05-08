@@ -9,5 +9,3 @@ xinit ./xinitrc -- \
         -ac \
         -screen 800x600 \
         -host-cursor
-© 2022 GitHub, Inc.
-Terms
