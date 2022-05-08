@@ -3,6 +3,8 @@
 using std::unique_ptr;
 
 
+bool WindowManager::wm_detected_;
+
 /*
  * Factory method for establishing a connection to an X server and creating
  * a Window Manager instance.
@@ -49,25 +51,23 @@ void WindowManager::Run() {
   XSetErrorHandler(&WindowManager::OnXError);
   
   XEvent e;
-  XNextEvemt(_dpy, &e);
+  XNextEvent(_dpy, &e);
 
   switch (e.type) {
-    switch (e.type) {
-      case CreateNotify:
-        OnCreateNotify(e.xcreatewindow);
-        break;
-      case DestroyNotify:
-        OnDestroyNotify(e.xdestroywindow);
-        break;
-      case ReparentNotify:
-        OnReparentNotify(e.xreparent);
-        break;
-      ...
+    case CreateNotify:
+      OnCreateNotify(e.xcreatewindow);
+      break;
+    case DestroyNotify:
+      OnDestroyNotify(e.xdestroywindow);
+      break;
+    case ReparentNotify:
+      OnReparentNotify(e.xreparent);
+      break;
+      //...
       // etc. etc.
-      ...
-      default:
-        printf("Ignored event");
-    }
+      //...
+    default:
+      printf("Ignored event");
   }
 }
 
@@ -84,3 +84,7 @@ int WindowManager::OnXError(Display* dpy, XErrorEvent* e) {
 
   return 0;
 }
+
+void WindowManager::OnCreateNotify(const XCreateWindowEvent& e) {}
+void WindowManager::OnDestroyNotify(const XDestroyWindowEvent& e) {}
+void WindowManager::OnReparentNotify(const XReparentEvent& e) {}

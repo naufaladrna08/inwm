@@ -40,6 +40,11 @@ class WindowManager {
     static int OnXError(Display* dpy, XErrorEvent* e);
     static int OnWMDetected(Display* dpy, XErrorEvent* e);
     static bool wm_detected_;
+    
+    /* Event handlers */
+    void OnCreateNotify(const XCreateWindowEvent& e);
+    void OnDestroyNotify(const XDestroyWindowEvent& e);
+    void OnReparentNotify(const XReparentEvent& e);
 };
 
 #endif
