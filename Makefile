@@ -1,10 +1,20 @@
-objects := $(patsubst %.cpp,%.o,$(wildcard *.cpp))
+CXXFLAGS ?= -Wall -g
+CXXFLAGS += -std=c++1y
+CXXFLAGS += `pkg-config --cflags x11 libglog`
+LDFLAGS += `pkg-config --libs x11 libglog`
 
-%.o: %.cpp
-	g++ -c $< -o $@ -std=c++1y
+all: inwm
 
-all: $(objects)
-	g++ -o wm $^ -lX11
+HEADERS = \
+    WindowManager.hpp
+SOURCES = \
+    WindowManager.cpp \
+    main.cpp
+OBJECTS = $(SOURCES:.cpp=.o)
 
+inwm: $(HEADERS) $(OBJECTS)
+	$(CXX) -o $@ $(OBJECTS) $(LDFLAGS)
+
+.PHONY: clean
 clean:
-	rm -rf wm $(objects) 
+	rm -f inwm $(OBJECTS)
