@@ -3,7 +3,7 @@
 using std::unique_ptr;
 
 
-bool WindowManager::wm_detected_;
+bool WindowManager::m_wmDetected;
 
 /*
  * Factory method for establishing a connection to an X server and creating
@@ -13,45 +13,44 @@ std::unique_ptr<WindowManager> WindowManager::Create() {
   /* Open the X display. */
   Display* dpy = XOpenDisplay(nullptr);
   if (dpy == nullptr) {
-    printf("Unable to start X Display.\n");
+    printf("Unable to open display: %s\n", XDisplayName(nullptr));
     return nullptr;
   }
 
-  return unique_ptr<WindowManager> (new WindowManager(dpy));
+  return std::unique_ptr<WindowManager> (new WindowManager(dpy));
 }
 
 /*
  * Invoke internally by Create()
  */
 WindowManager::WindowManager(Display* dpy)
-: _dpy (dpy),
-  _root(DefaultRootWindow(_dpy)) {
+: m_dpy (dpy),
+  m_root(DefaultRootWindow(m_dpy)) {
 }
-
 
 /*
  * Disconnect from the X server.
  */
 WindowManager::~WindowManager() {
-  XCloseDisplay(_dpy);
+  XCloseDisplay(m_dpy);
 }
 
 void WindowManager::Run() {
-  /* Initializastion */
-  wm_detected_ = false;
+  /* Initialization */
+  m_wmDetected = false;
   
   XSetErrorHandler(&WindowManager::OnWMDetected);
-  XSelectInput(_dpy, _root, SubstructureRedirectMask | SubstructureNotifyMask);
+  XSelectInput(m_dpy, m_root, SubstructureRedirectMask | SubstructureNotifyMask);
 
-  if (wm_detected_) {
-    printf("Detected another window manager %s", XDisplayString(_dpy));
+  if (m_wmDetected) {
+    printf("Detected another window manager %s", XDisplayString(m_dpy));
     return;
   }
 
   XSetErrorHandler(&WindowManager::OnXError);
   
   XEvent e;
-  XNextEvent(_dpy, &e);
+  XNextEvent(m_dpy, &e);
 
   switch (e.type) {
     case CreateNotify:
@@ -82,7 +81,7 @@ void WindowManager::Run() {
 
 int WindowManager::OnWMDetected(Display* dpy, XErrorEvent* e) {
   if (static_cast<int>(e->error_code) == BadAccess) {
-    wm_detected_ = true;
+    m_wmDetected = true;
   }
 
   return 0;
@@ -110,16 +109,16 @@ void WindowManager::OnConfigureRequest(const XConfigureRequestEvent& e) {
 
   if (m_clients.count(e.window)) {
     const Window frame = m_clients[e.window];
-    XConfigureWindow(_dpy, frame, e.value_mask, &changes);
+    XConfigureWindow(m_dpy, frame, e.value_mask, &changes);
   }
 
-  XConfigureWindow(_dpy, e.window, e.value_mask, &changes);
+  XConfigureWindow(m_dpy, e.window, e.value_mask, &changes);
   printf("Resize window %d, %d\n", e.width, e.height);
 }
 
 void WindowManager::OnMapRequest(const XMapRequestEvent& e) {
   Frame(e.window);
-  XMapWindow(_dpy, e.window);
+  XMapWindow(m_dpy, e.window);
 }
 
 void WindowManager::Frame(Window w) {
@@ -128,20 +127,21 @@ void WindowManager::Frame(Window w) {
   const unsigned long BACKGROUND_COLOR = 0x1ABC9C;
 
   XWindowAttributes xattr;
+  XGetWindowAttributes(m_dpy, w, &xattr);
 
   const Window frame = XCreateSimpleWindow(
-    _dpy,
-    _root,
+    m_dpy,
+    m_root,
     xattr.x, xattr.y,
     xattr.width, xattr.height,
     BORDER_WIDTH, BORDER_COLOR,
     BACKGROUND_COLOR
   );
 
-  XAddToSaveSet(_dpy, w);
-  XSelectInput(_dpy, frame, SubstructureRedirectMask | SubstructureNotifyMask);
-  XReparentWindow(_dpy, w, frame, 0, 0);
-  XMapWindow(_dpy, frame);
+  XAddToSaveSet(m_dpy, w);
+  XSelectInput(m_dpy, frame, SubstructureRedirectMask | SubstructureNotifyMask);
+  XReparentWindow(m_dpy, w, frame, 0, 0);
+  XMapWindow(m_dpy, frame);
 
   m_clients[w] = frame;
 }
@@ -149,10 +149,10 @@ void WindowManager::Frame(Window w) {
 void WindowManager::Unframe(Window w) {
   const Window frame = m_clients[w];
 
-  XUnmapWindow(_dpy, w);
-  XReparentWindow(_dpy, w, _root, 0, 0);
-  XRemoveFromSaveSet(_dpy, w);
-  XDestroyWindow(_dpy, frame);
+  XUnmapWindow(m_dpy, w);
+  XReparentWindow(m_dpy, w, m_root, 0, 0);
+  XRemoveFromSaveSet(m_dpy, w);
+  XDestroyWindow(m_dpy, frame);
   m_clients.erase(w);
 }
 

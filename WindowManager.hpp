@@ -14,7 +14,7 @@ class WindowManager {
      * a Window Manager instance.
      */
     static std::unique_ptr<WindowManager> Create();
-    ::std::unordered_map<Window, Window> m_clients;
+    std::unordered_map<Window, Window> m_clients;
 
     /*
      * Disconnect from the X server.
@@ -32,16 +32,16 @@ class WindowManager {
     /*
      * Handle to the underlying Xlib Display struct.
      */
-    Display* _dpy;
+    Display* m_dpy;
 
     /*
      * Handle to root window.
      */
-    const Window _root;
+    const Window m_root;
 
     static int OnXError(Display* dpy, XErrorEvent* e);
     static int OnWMDetected(Display* dpy, XErrorEvent* e);
-    static bool wm_detected_;
+    static bool m_wmDetected;
     
     /* Event handlers */
     void OnCreateNotify(const XCreateWindowEvent& e);
