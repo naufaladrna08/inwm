@@ -42,40 +42,47 @@ void WindowManager::Run() {
   XSetErrorHandler(&WindowManager::OnWMDetected);
   XSelectInput(m_dpy, m_root, SubstructureRedirectMask | SubstructureNotifyMask);
 
+  XSync(m_dpy, false);
   if (m_wmDetected) {
-    printf("Detected another window manager %s", XDisplayString(m_dpy));
+    printf("Detected another window manager %s\n", XDisplayString(m_dpy));
     return;
   }
 
   XSetErrorHandler(&WindowManager::OnXError);
   
-  XEvent e;
-  XNextEvent(m_dpy, &e);
+  while (true) {
+    XEvent e;
+    XNextEvent(m_dpy, &e);
 
-  switch (e.type) {
-    case CreateNotify:
-      OnCreateNotify(e.xcreatewindow);
-      break;
-    case DestroyNotify:
-      OnDestroyNotify(e.xdestroywindow);
-      break;
-    case ReparentNotify:
-      OnReparentNotify(e.xreparent);
-      break;
-    case ConfigureRequest:
-      OnConfigureRequest(e.xconfigurerequest);
-    case MapRequest:
-      OnMapRequest(e.xmaprequest);
-    case MapNotify:
-      OnMapNotify(e.xmap);
-    case UnmapNotify:
-      OnUnmapNotify(e.xunmap);
-      break;
-    case ConfigureNotify:
-      OnConfigureNotify(e.xconfigure);
-    
-    default:
-      printf("Ignored event");
+    switch (e.type) {
+      case CreateNotify:
+        OnCreateNotify(e.xcreatewindow);
+        break;
+      case DestroyNotify:
+        OnDestroyNotify(e.xdestroywindow);
+        break;
+      case ReparentNotify:
+        OnReparentNotify(e.xreparent);
+        break;
+      case ConfigureRequest:
+        OnConfigureRequest(e.xconfigurerequest);
+        break;
+      case MapRequest:
+        OnMapRequest(e.xmaprequest);
+        break;
+      case MapNotify:
+        OnMapNotify(e.xmap);
+        break;
+      case UnmapNotify:
+        OnUnmapNotify(e.xunmap);
+        break;
+      case ConfigureNotify:
+        OnConfigureNotify(e.xconfigure);
+        break;
+      
+      default:
+        printf("Ignored event\n");
+    }
   }
 }
 
@@ -88,7 +95,8 @@ int WindowManager::OnWMDetected(Display* dpy, XErrorEvent* e) {
 }
 
 int WindowManager::OnXError(Display* dpy, XErrorEvent* e) {
-  // printf(e->) TODO: xixixi
+  char error[255];
+  printf("Received X error: %d\n", XGetErrorText(dpy, e->error_code, error, 255));
 
   return 0;
 }
