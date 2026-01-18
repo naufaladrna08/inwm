@@ -6,3 +6,11 @@ build
 
 .vscode
 inwm
+
+# Executable files
+*.a
+*.so
+inwm
+new_bar
+test_gui
+example_settings
