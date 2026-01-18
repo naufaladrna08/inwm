@@ -32,6 +32,7 @@ class Bar {
     void Draw();
     void HandleEvent(XEvent* ev);
     void HandleExpose(XEvent* ev);
+    void HandleButtonPress(XEvent* ev);
 };
 
 #endif

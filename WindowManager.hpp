@@ -6,11 +6,18 @@ extern "C" {
 }
 #include <memory>
 #include <unordered_map>
-#include <iostream>
+#include <string>
 
 struct Vector2D {
   int x;
   int y;
+};
+
+enum SnapState {
+  NONE,
+  LEFT_SNAP,
+  RIGHT_SNAP,
+  MAXIMIZED
 };
 
 struct Client {
@@ -18,9 +25,11 @@ struct Client {
   Window m_client;
   Window m_closeButton;
   Window m_titlebar;
+  Window m_resizeHandle;  // Bottom-right resize handle
   std::string m_title;
-  bool m_isDocked;
-  Vector2D m_sizeBeforeDock;
+  SnapState m_snapState;
+  Vector2D m_sizeBeforeSnap;
+  Vector2D m_posBeforeSnap;
 };
 
 class WindowManager {
@@ -60,11 +69,14 @@ class WindowManager {
     static bool m_wmDetected;
 
     static Client s_dragWin;
+    static Client s_resizeWin;
     static int m_mouseX, m_mouseY;
     int m_winStartX;  // Window's initial X position when dragging starts
     int m_winStartY;  // Window's initial Y position when dragging starts
     int m_dragOffsetX;  // Offset between mouse and window X position
     int m_dragOffsetY;  // Offset between mouse and window Y position
+    int m_screenWidth, m_screenHeight;  // Screen dimensions
+    bool m_isResizing;  // Track resize state
     
     /* Event handlers */
     void OnCreateNotify(const XCreateWindowEvent& e);
@@ -78,9 +90,18 @@ class WindowManager {
     void OnButtonPressNotify(const XButtonEvent& e);
     void OnButtonReleaseNotify(const XButtonEvent& e);
     void OnMotionNotify(const XMotionEvent& e);
+    void OnKeyPressNotify(const XKeyEvent& e);
+    
+    /* Helper functions */
+    void SnapWindow(Window clientWindow, SnapState state);
+    void RestoreWindow(Window clientWindow);
+    Client* FindClientByFrame(Window frame);
+    Client* FindClientByWindow(Window window);
 
     void Frame(Window w, const std::string& title = "");
     void Unframe(Window w);
+    void setupTitleText(Window titlebar, const std::string& title);
+    void drawWindowTitle(Window titlebar, const std::string& title);
 };
 
 #endif

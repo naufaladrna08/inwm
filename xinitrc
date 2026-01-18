@@ -19,9 +19,13 @@
 # xinitrc file for testing our window manager.
 
 # 1. Start some programs to play with.
+LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:./lib ./new_bar &
+sleep 1
 xclock &
 xeyes &
-sleep 2 && xterm &
+sleep 1 && xterm &
+sleep 1 && LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:./lib ./lib/test_gui &
+sleep 1 && LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:./lib ./lib/example_settings &
 
 # 2. Start our window manager.
 exec ./inwm
